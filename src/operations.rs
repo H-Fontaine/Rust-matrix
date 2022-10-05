@@ -49,9 +49,9 @@ impl<T : Num> Mul for Matrix<T> where  T : Mul + AddAssign + Copy {
                 for j in 0..rhs.nb_columns {
                     let mut sum : T = zero();
                     for k in 0..self.nb_columns {
-                        sum += self[i][k] * rhs[k][j]
+                        sum += self[i][k] * rhs[k][j];
                     }
-                    res[i][j] = sum
+                    res[i][j] = sum;
                 }
             }
             res
@@ -100,3 +100,40 @@ impl<T : Num> Matrix<T> {
         }
     }
 }
+
+impl<T : Num> Matrix<T> where T : AddAssign + Clone {
+    pub fn sum_line(self) -> Matrix<T> {
+        let nb_columns = self.nb_columns;
+        Matrix {
+            nb_columns,
+            nb_lines: 1,
+            size: nb_columns,
+            data: {
+                let mut data: Vec<T> = vec![zero(); self.nb_columns];
+                for (i, value) in (0..self.size).zip(self.into_iter()) {
+                    data[i % nb_columns] += value;
+                }
+                data.into_boxed_slice()
+            }
+        }
+    }
+
+    pub fn sum_col(self) -> Matrix<T> {
+        let nb_lines = self.nb_lines;
+        Matrix {
+            nb_lines,
+            nb_columns : 1,
+            size: nb_lines,
+            data: {
+                let mut data: Vec<T> = vec![zero(); self.nb_columns];
+                for (i, value) in (0..self.size).zip(self.into_iter()) {
+                    data[i / nb_lines] += value;
+                }
+                data.into_boxed_slice()
+            }
+        }
+    }
+}
+
+
+
