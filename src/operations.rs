@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, BitAnd, Mul};
+use std::ops::{Add, AddAssign, BitAnd, Div, Mul, Neg};
 use num_traits::{Num, zero};
 use crate::Matrix;
 
@@ -37,8 +37,15 @@ impl<T : Num> Add for Matrix<T> where T : AddAssign + Copy {
         }
     }
 }
+//OVERLOADING NEG (-) OPERATOR
+impl<T : Num> Neg for Matrix<T> where T : Neg<Output = T> {
+    type Output = Matrix<T>;
+    fn neg(self) -> Self::Output {
+        self.map(|a| -a)
+    }
+}
 
-//OVERLOADING * OPERATOR
+//OVERLOADING * OPERATOR FOR MATRIX
 impl<T : Num> Mul for Matrix<T> where  T : Mul + AddAssign + Copy {
     type Output = Matrix<T>;
     
@@ -59,6 +66,22 @@ impl<T : Num> Mul for Matrix<T> where  T : Mul + AddAssign + Copy {
         else {
             panic!("Can't multiply to matrix with no compatible shapes")
         }
+    }
+}
+
+//OVERLOADING * OPERATOR FOR SCALARS
+impl<T : Num> Mul<T> for Matrix<T> where T : Mul<T, Output = T> + Copy {
+    type Output = Matrix<T>;
+    fn mul(self, rhs: T) -> Self::Output {
+        self.map(|a| a * rhs)
+    }
+}
+
+//OVERLOADING / OPERATOR FOR SCALARS
+impl<T : Num> Div<T> for Matrix<T> where T : Div<T, Output = T> + Copy {
+    type Output = Matrix<T>;
+    fn div(self, rhs: T) -> Self::Output {
+        self.map(|a| a / rhs)
     }
 }
 
@@ -132,6 +155,8 @@ impl<T : Num> Matrix<T> where T : AddAssign + Clone {
         }
     }
 }
+
+
 
 
 
