@@ -65,6 +65,21 @@ impl<T : Num> Matrix<T> where T : Copy {
     }
 }
 
+//GETTERS
+impl<T : Num> Matrix<T> {
+    pub fn lines(&self) -> usize {
+        self.nb_lines
+    }
+
+    pub fn columns(&self) -> usize {
+        self.nb_columns
+    }
+
+    pub fn size(&self) -> usize {
+        self.size
+    }
+}
+
 //IMPLEMENTATION OF THE CLONE TRAIT
 impl<T : Num> Clone for Matrix<T> where T : Clone {
     fn clone(&self) -> Self {

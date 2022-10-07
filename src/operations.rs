@@ -84,8 +84,6 @@ impl<T : Num> BitAnd for Matrix<T> {
     }
 }
 
-
-
 //FUNCTIONALITIES
 impl<T : Num> Matrix<T> {
     pub fn map<F>(self, f: F) -> Matrix<T> where F: Fn(T) -> T { //Apply a function to the Matrix
