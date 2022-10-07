@@ -3,7 +3,7 @@ use num_traits::{Num, zero};
 use crate::Matrix;
 
 //OVERLOADING + OPERATOR
-impl<T : Num> Add for Matrix<T> where T : AddAssign + Copy {
+impl<T : Num> Add<Matrix<T>> for Matrix<T> where T : AddAssign + Copy {
     type Output = Matrix<T>;
 
     fn add(mut self, rhs: Self) -> Self::Output {
@@ -46,7 +46,7 @@ impl<T : Num> Neg for Matrix<T> where T : Neg<Output = T> {
 }
 
 //OVERLOADING * OPERATOR FOR MATRIX
-impl<T : Num> Mul for Matrix<T> where  T : Mul + AddAssign + Copy {
+impl<T : Num> Mul<Matrix<T>> for Matrix<T> where  T : Mul + AddAssign + Copy {
     type Output = Matrix<T>;
     
     fn mul(self, rhs: Self) -> Self::Output {
