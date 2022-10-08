@@ -82,7 +82,7 @@ impl<T : Num> Matrix<T> where T : Copy {
         }
     }
 
-    pub fn chose_lines(&self, chosen_lines : Vec<usize>) -> Matrix<T> {
+    pub fn chose_lines(&self, chosen_lines : &Vec<usize>) -> Matrix<T> {
         let nb_of_chosen_lines = chosen_lines.len();
         Matrix {
             nb_lines : nb_of_chosen_lines,
