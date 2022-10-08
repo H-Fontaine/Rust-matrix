@@ -37,6 +37,19 @@ impl<T : Num> Add<Matrix<T>> for Matrix<T> where T : AddAssign + Copy {
         }
     }
 }
+
+//OVERLOADING += OPERATOR
+impl<T : Num> AddAssign<Matrix<T>> for Matrix<T> where T : AddAssign {
+    fn add_assign(&mut self, rhs: Self) {
+        if self.nb_lines == rhs.nb_lines && self.nb_columns == rhs.nb_columns {
+            for (right, left) in self.into_iter().zip(rhs.into_iter()) {
+                *right += left;
+            }
+        }
+    }
+}
+
+
 //OVERLOADING NEG (-) OPERATOR
 impl<T : Num> Neg for Matrix<T> where T : Neg<Output = T> {
     type Output = Matrix<T>;
