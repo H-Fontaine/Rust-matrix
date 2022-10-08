@@ -1,7 +1,8 @@
 use std::fmt::Display;
 use std::ops::{Index, IndexMut};
 use num_traits::{Num, one, zero};
-use rand::{Rng, distributions::Distribution};
+use rand::{Rng, distributions::Distribution, thread_rng};
+use rand::distributions::Uniform;
 
 
 mod operations;
@@ -62,6 +63,23 @@ impl<T : Num> Matrix<T> where T : Copy {
             }
         }
         matrix
+    }
+
+    pub fn chose_rnd_lines(&self, nb_of_selected_line : usize) -> Matrix<T> where [T] : Clone {
+        let range = Uniform::new(0, self.nb_lines);
+        let choices : Vec<usize> = thread_rng().sample_iter(range).take(nb_of_selected_line).collect();
+        Matrix {
+            nb_lines : nb_of_selected_line,
+            nb_columns : self.nb_columns,
+            size : self.nb_columns * nb_of_selected_line,
+            data : {
+                let mut data = Vec::<T>::with_capacity(self.nb_columns * nb_of_selected_line);
+                for i in 0..nb_of_selected_line {
+                    data.extend_from_slice(&self[choices[i]]);
+                }
+                data.into_boxed_slice()
+            }
+        }
     }
 }
 
