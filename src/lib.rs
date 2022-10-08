@@ -65,7 +65,7 @@ impl<T : Num> Matrix<T> where T : Copy {
         matrix
     }
 
-    pub fn chose_rnd_lines(&self, nb_of_selected_line : usize) -> Matrix<T> where [T] : Clone {
+    pub fn chose_rnd_lines(&self, nb_of_selected_line : usize) -> Matrix<T> {
         let range = Uniform::new(0, self.nb_lines);
         let choices : Vec<usize> = thread_rng().sample_iter(range).take(nb_of_selected_line).collect();
         Matrix {
@@ -76,6 +76,22 @@ impl<T : Num> Matrix<T> where T : Copy {
                 let mut data = Vec::<T>::with_capacity(self.nb_columns * nb_of_selected_line);
                 for i in 0..nb_of_selected_line {
                     data.extend_from_slice(&self[choices[i]]);
+                }
+                data.into_boxed_slice()
+            }
+        }
+    }
+
+    pub fn chose_lines(&self, chosen_lines : Vec<usize>) -> Matrix<T> {
+        let nb_of_chosen_lines = chosen_lines.len();
+        Matrix {
+            nb_lines : nb_of_chosen_lines,
+            nb_columns : self.nb_columns,
+            size : self.nb_columns * nb_of_chosen_lines,
+            data : {
+                let mut data = Vec::<T>::with_capacity(self.nb_columns * nb_of_chosen_lines);
+                for i in 0..nb_of_chosen_lines {
+                    data.extend_from_slice(&self[chosen_lines[i]]);
                 }
                 data.into_boxed_slice()
             }
