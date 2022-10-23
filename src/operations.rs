@@ -1,9 +1,9 @@
 use std::ops::{Add, AddAssign, BitAnd, Div, Mul, Neg};
-use num_traits::{Num, zero};
+use num_traits::{Num, zero, Zero};
 use crate::Matrix;
 
 //OVERLOADING + OPERATOR
-impl<T : Num> Add<Matrix<T>> for Matrix<T> where T : AddAssign + Copy {
+impl<T> Add<Matrix<T>> for Matrix<T> where T : AddAssign + Copy + Add<Output = T> {
     type Output = Matrix<T>;
 
     fn add(mut self, rhs: Self) -> Self::Output {
@@ -39,7 +39,7 @@ impl<T : Num> Add<Matrix<T>> for Matrix<T> where T : AddAssign + Copy {
 }
 
 //OVERLOADING += OPERATOR
-impl<T : Num> AddAssign<Matrix<T>> for Matrix<T> where T : AddAssign {
+impl<T> AddAssign<Matrix<T>> for Matrix<T> where T : AddAssign {
     fn add_assign(&mut self, rhs: Self) {
         if self.nb_lines == rhs.nb_lines && self.nb_columns == rhs.nb_columns {
             for (right, left) in self.into_iter().zip(rhs.into_iter()) {
@@ -51,7 +51,7 @@ impl<T : Num> AddAssign<Matrix<T>> for Matrix<T> where T : AddAssign {
 
 
 //OVERLOADING NEG (-) OPERATOR
-impl<T : Num> Neg for Matrix<T> where T : Neg<Output = T> {
+impl<T> Neg for Matrix<T> where T : Neg<Output = T> {
     type Output = Matrix<T>;
     fn neg(self) -> Self::Output {
         self.map(|a| -a)
@@ -59,7 +59,7 @@ impl<T : Num> Neg for Matrix<T> where T : Neg<Output = T> {
 }
 
 //OVERLOADING * OPERATOR FOR MATRIX
-impl<T : Num> Mul<Matrix<T>> for Matrix<T> where  T : Mul + AddAssign + Copy {
+impl<T> Mul<Matrix<T>> for Matrix<T> where  T : Mul<Output = T> + AddAssign + Copy + Zero{
     type Output = Matrix<T>;
     
     fn mul(self, rhs: Self) -> Self::Output {
@@ -83,7 +83,7 @@ impl<T : Num> Mul<Matrix<T>> for Matrix<T> where  T : Mul + AddAssign + Copy {
 }
 
 //OVERLOADING * OPERATOR FOR SCALARS
-impl<T : Num> Mul<T> for Matrix<T> where T : Mul<T, Output = T> + Copy {
+impl<T> Mul<T> for Matrix<T> where T : Mul<T, Output = T> + Copy {
     type Output = Matrix<T>;
     fn mul(self, rhs: T) -> Self::Output {
         self.map(|a| a * rhs)
@@ -91,7 +91,7 @@ impl<T : Num> Mul<T> for Matrix<T> where T : Mul<T, Output = T> + Copy {
 }
 
 //OVERLOADING / OPERATOR FOR SCALARS
-impl<T : Num> Div<T> for Matrix<T> where T : Div<T, Output = T> + Copy {
+impl<T> Div<T> for Matrix<T> where T : Div<T, Output = T> + Copy {
     type Output = Matrix<T>;
     fn div(self, rhs: T) -> Self::Output {
         self.map(|a| a / rhs)
@@ -99,7 +99,7 @@ impl<T : Num> Div<T> for Matrix<T> where T : Div<T, Output = T> + Copy {
 }
 
 //OVERLOADING & OPERATOR for the Hadamard product
-impl<T : Num> BitAnd for Matrix<T> {
+impl<T> BitAnd for Matrix<T> where T : Mul<Output = T>  {
     type Output = Matrix<T>;
 
     fn bitand(self, rhs: Self) -> Self::Output {
@@ -115,13 +115,13 @@ impl<T : Num> BitAnd for Matrix<T> {
             }
         }
         else {
-            panic!("Can't add two matrix with different shape !!")
+            panic!("Can't multiply index to index two matrix with different shape !!")
         }
     }
 }
 
 //FUNCTIONALITIES
-impl<T : Num> Matrix<T> {
+impl<T> Matrix<T> {
     pub fn map<F>(self, f: F) -> Matrix<T> where F: Fn(T) -> T { //Apply a function to the Matrix
         Matrix {
             nb_lines : self.nb_lines,
@@ -135,7 +135,7 @@ impl<T : Num> Matrix<T> {
     }
 }
 
-impl<T : Num> Matrix<T> where T : AddAssign + Clone {
+impl<T> Matrix<T> where T : AddAssign + Clone + Zero{
     pub fn sum_line(self) -> Matrix<T> {
         let nb_columns = self.nb_columns;
         Matrix {

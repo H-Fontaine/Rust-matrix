@@ -1,6 +1,6 @@
 use std::fmt::Display;
 use std::ops::{Index, IndexMut};
-use num_traits::{Num, one, zero};
+use num_traits::{one, zero, Zero, One};
 use rand::{Rng, distributions::Distribution, thread_rng};
 use rand::distributions::Uniform;
 
@@ -8,7 +8,7 @@ use rand::distributions::Uniform;
 mod operations;
 mod iterators;
 
-pub struct Matrix<T : Num> {
+pub struct Matrix<T> {
     nb_lines : usize,
     nb_columns : usize,
     size: usize,
@@ -17,7 +17,7 @@ pub struct Matrix<T : Num> {
 
 
 //METHODS TO CREATE NEW MATRIX
-impl<T : Num> Matrix<T> where T : Copy {
+impl<T> Matrix<T> where T : Copy {
     pub fn new(nb_lines : usize, nb_columns : usize, value : T) -> Matrix<T> { //create a matrix filled with the value "value"
         Matrix {
             nb_lines,
@@ -27,7 +27,7 @@ impl<T : Num> Matrix<T> where T : Copy {
         }
     }
 
-    pub fn zeros(nb_lines : usize, nb_columns : usize) -> Matrix<T> { //create a matrix filled with the value zero
+    pub fn zeros(nb_lines : usize, nb_columns : usize) -> Matrix<T> where T : Zero { //create a matrix filled with the value zero
         Matrix {
             nb_lines,
             nb_columns,
@@ -36,7 +36,7 @@ impl<T : Num> Matrix<T> where T : Copy {
         }
     }
 
-    pub fn ones(nb_lines : usize, nb_columns : usize) -> Matrix<T> { //create a matrix filled with the value one
+    pub fn ones(nb_lines : usize, nb_columns : usize) -> Matrix<T> where T : One { //create a matrix filled with the value one
         Matrix {
             nb_lines,
             nb_columns,
@@ -55,14 +55,19 @@ impl<T : Num> Matrix<T> where T : Copy {
         }
     }
 
-    pub fn t(&self) -> Matrix<T> { //return the transposed matrix
-        let mut matrix : Matrix<T> = Matrix::zeros(self.nb_columns, self.nb_lines);
-        for i in  0..self.nb_lines {
-            for j in 0..self.nb_columns {
-                matrix[j][i] = self[i][j];
+    pub fn t(&self) -> Matrix<T> where T : Copy { //return the transposed matrix
+        let mut data = Vec::<T>::with_capacity(self.size);
+        for j in 0..self.nb_columns {
+            for i in 0..self.nb_lines {
+                data.push(self[i][j])
             }
         }
-        matrix
+        Matrix {
+            nb_lines : self.nb_columns,
+            nb_columns : self.nb_lines,
+            size : self.size,
+            data : data.into_boxed_slice(),
+        }
     }
 
     pub fn chose_rnd_lines(&self, nb_of_selected_line : usize) -> Matrix<T> {
@@ -100,7 +105,7 @@ impl<T : Num> Matrix<T> where T : Copy {
 }
 
 //GETTERS
-impl<T : Num> Matrix<T> {
+impl<T> Matrix<T> {
     pub fn lines(&self) -> usize {
         self.nb_lines
     }
@@ -115,7 +120,7 @@ impl<T : Num> Matrix<T> {
 }
 
 //IMPLEMENTATION OF THE CLONE TRAIT
-impl<T : Num> Clone for Matrix<T> where T : Clone {
+impl<T> Clone for Matrix<T> where T : Clone {
     fn clone(&self) -> Self {
         Matrix {
             nb_lines : self.nb_lines,
@@ -127,7 +132,7 @@ impl<T : Num> Clone for Matrix<T> where T : Clone {
 }
 
 //OVERLOADING [.] operator
-impl<T : Num> Index<usize> for Matrix<T> {
+impl<T> Index<usize> for Matrix<T> {
     type Output = [T];
     fn index(&self, index: usize) -> &Self::Output {
         let begin = index * self.nb_columns;
@@ -135,7 +140,7 @@ impl<T : Num> Index<usize> for Matrix<T> {
         &self.data[begin..end]
     }
 }
-impl<T : Num> IndexMut<usize> for Matrix<T> {
+impl<T> IndexMut<usize> for Matrix<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         let begin = index * self.nb_columns;
         let end = begin + self.nb_columns;
@@ -145,7 +150,7 @@ impl<T : Num> IndexMut<usize> for Matrix<T> {
 
 
 //DISPLAY METHODS
-impl<T : Num> Matrix<T> where T : Display{
+impl<T> Matrix<T> where T : Display{
     pub fn display(&self) {
         for i in 0..self.nb_lines {
             for j in 0..self.nb_columns {

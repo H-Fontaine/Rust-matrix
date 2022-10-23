@@ -2,10 +2,10 @@ use num_traits::Num;
 use crate::Matrix;
 
 
-pub struct MatrixMutRefIterator<'a, T : Num> {
+pub struct MatrixMutRefIterator<'a, T> {
     data : &'a mut [T],
 }
-impl<'a, T : Num> Iterator for MatrixMutRefIterator<'a, T> {
+impl<'a, T> Iterator for MatrixMutRefIterator<'a, T> {
     type Item = &'a mut T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -19,7 +19,7 @@ impl<'a, T : Num> Iterator for MatrixMutRefIterator<'a, T> {
         }
     }
 }
-impl<'a, T : Num> IntoIterator for &'a mut Matrix<T> {
+impl<'a, T> IntoIterator for &'a mut Matrix<T> {
     type Item = &'a mut T;
     type IntoIter = MatrixMutRefIterator<'a, T>;
 
@@ -31,12 +31,12 @@ impl<'a, T : Num> IntoIterator for &'a mut Matrix<T> {
 }
 
 
-pub struct MatrixRefIterator<'a, T : Num> {
+pub struct MatrixRefIterator<'a, T> {
     parent : &'a Matrix<T>,
     index : usize,
 
 }
-impl<'a, T : Num> Iterator for MatrixRefIterator<'a, T> {
+impl<'a, T> Iterator for MatrixRefIterator<'a, T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -50,7 +50,7 @@ impl<'a, T : Num> Iterator for MatrixRefIterator<'a, T> {
         }
     }
 }
-impl<'a, T : Num> IntoIterator for &'a Matrix<T> {
+impl<'a, T> IntoIterator for &'a Matrix<T> {
     type Item = &'a T;
     type IntoIter = MatrixRefIterator<'a, T>;
 
@@ -63,7 +63,7 @@ impl<'a, T : Num> IntoIterator for &'a Matrix<T> {
 }
 
 
-impl<T : Num> IntoIterator for Matrix<T> {
+impl<T> IntoIterator for Matrix<T> {
     type Item = T;
     type IntoIter = std::vec::IntoIter<T>;
 
