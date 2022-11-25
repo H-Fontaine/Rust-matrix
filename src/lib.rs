@@ -17,8 +17,8 @@ pub struct Matrix<T> {
 
 
 //METHODS TO CREATE NEW MATRIX
-impl<T> Matrix<T> where T : Copy {
-    pub fn new(nb_lines : usize, nb_columns : usize, value : T) -> Matrix<T> { //create a matrix filled with the value "value"
+impl<T> Matrix<T> {
+    pub fn new(nb_lines : usize, nb_columns : usize, value : T) -> Matrix<T> where T : Copy { //create a matrix filled with the value "value"
         Matrix {
             nb_lines,
             nb_columns,
@@ -27,7 +27,7 @@ impl<T> Matrix<T> where T : Copy {
         }
     }
 
-    pub fn zeros(nb_lines : usize, nb_columns : usize) -> Matrix<T> where T : Zero { //create a matrix filled with the value zero
+    pub fn zeros(nb_lines : usize, nb_columns : usize) -> Matrix<T> where T : Zero + Copy { //create a matrix filled with the value zero
         Matrix {
             nb_lines,
             nb_columns,
@@ -36,7 +36,7 @@ impl<T> Matrix<T> where T : Copy {
         }
     }
 
-    pub fn ones(nb_lines : usize, nb_columns : usize) -> Matrix<T> where T : One { //create a matrix filled with the value one
+    pub fn ones(nb_lines : usize, nb_columns : usize) -> Matrix<T> where T : One + Copy { //create a matrix filled with the value one
         Matrix {
             nb_lines,
             nb_columns,
@@ -70,7 +70,7 @@ impl<T> Matrix<T> where T : Copy {
         }
     }
 
-    pub fn chose_rnd_lines(&self, nb_of_selected_line : usize) -> Matrix<T> {
+    pub fn chose_rnd_lines(&self, nb_of_selected_line : usize) -> Matrix<T> where T : Copy {
         let range = Uniform::new(0, self.nb_lines);
         let choices : Vec<usize> = thread_rng().sample_iter(range).take(nb_of_selected_line).collect();
         Matrix {
@@ -87,7 +87,7 @@ impl<T> Matrix<T> where T : Copy {
         }
     }
 
-    pub fn chose_lines(&self, chosen_lines : &Vec<usize>) -> Matrix<T> {
+    pub fn chose_lines(&self, chosen_lines : &Vec<usize>) -> Matrix<T>  where T : Copy {
         let nb_of_chosen_lines = chosen_lines.len();
         Matrix {
             nb_lines : nb_of_chosen_lines,
