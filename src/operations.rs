@@ -59,22 +59,26 @@ impl<T> Neg for Matrix<T> where T : Neg<Output = T> {
 }
 
 //OVERLOADING * OPERATOR FOR MATRIX
-impl<T> Mul<Matrix<T>> for Matrix<T> where  T : Mul<Output = T> + AddAssign + Copy + Zero{
+impl<T> Mul<Matrix<T>> for Matrix<T> where  T : Mul<Output = T> + AddAssign + Copy {
     type Output = Matrix<T>;
     
     fn mul(self, rhs: Self) -> Self::Output {
-        let mut res : Matrix<T> = Matrix::zeros(self.nb_lines, rhs.nb_columns);
+        let mut res = Vec::<T>::with_capacity(self.nb_lines * rhs.nb_columns);
         if self.nb_columns == rhs.nb_lines {
             for i in 0..self.nb_lines {
                 for j in 0..rhs.nb_columns {
-                    let mut sum : T = zero();
-                    for k in 0..self.nb_columns {
-                        sum += self[i][k] * rhs[k][j];
+                    res.push(self[i][0] * rhs[0][j]);
+                    for k in 1..self.nb_columns {
+                        *res.last_mut().unwrap() += self[i][k] * rhs[k][j];
                     }
-                    res[i][j] = sum;
                 }
             }
-            res
+            Matrix {
+                nb_lines: self.nb_lines,
+                nb_columns: rhs.nb_columns,
+                size: self.nb_lines * rhs.nb_columns,
+                data: res.into_boxed_slice(),
+            }
         }
         else {
             panic!("Can't multiply to matrix with no compatible shapes")
