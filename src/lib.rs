@@ -150,7 +150,7 @@ impl<T> IndexMut<usize> for Matrix<T> {
 
 
 //DISPLAY METHODS
-impl<T> Matrix<T> where T : Display{
+impl<T> Matrix<T> where T : Display {
     pub fn display(&self) {
         for i in 0..self.nb_lines {
             for j in 0..self.nb_columns {
