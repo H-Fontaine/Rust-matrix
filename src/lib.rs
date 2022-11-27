@@ -18,12 +18,12 @@ pub struct Matrix<T> {
 
 //METHODS TO CREATE NEW MATRIX
 impl<T> Matrix<T> {
-    pub fn new(nb_lines : usize, nb_columns : usize, value : T) -> Matrix<T> where T : Copy { //create a matrix filled with the value "value"
+    pub fn new() -> Matrix<T> { //create a matrix filled with the value "value"
         Matrix {
-            nb_lines,
-            nb_columns,
-            size : nb_lines * nb_columns,
-            data : vec![value; nb_lines * nb_columns],
+            nb_lines : 0,
+            nb_columns : 0,
+            size : 0,
+            data : Vec::new(),
         }
     }
 
