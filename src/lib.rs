@@ -108,7 +108,7 @@ impl<T> Matrix<T> {
         for i in 0..nb_of_parts {
             res.push(Matrix {
                 nb_lines: sizes[i],
-                nb_columns: nb_columns,
+                nb_columns,
                 size: sizes[i] * nb_columns,
                 data: matrice_iter.by_ref().take(sizes[i] * nb_columns).collect(),
             })
