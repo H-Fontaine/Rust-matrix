@@ -115,6 +115,22 @@ impl<T> Matrix<T> {
         }
         res
     }
+
+    pub fn concatenate_lines(self, other : Matrix<T>) -> Matrix<T> {
+        assert_eq!(self.nb_columns, other.nb_columns, "Error can't concatenate matrix with different number of columns");
+        let nb_lines = self.nb_lines + other.nb_lines;
+        let nb_columns = self.nb_columns;
+        let size = nb_lines * self.nb_columns;
+        let mut data = Vec::with_capacity(size);
+        data.extend(self.into_iter());
+        data.extend(other.into_iter());
+        Matrix {
+            nb_lines,
+            nb_columns,
+            size,
+            data,
+        }
+    }
 }
 
 pub trait Concatenate {
