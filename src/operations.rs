@@ -1,5 +1,5 @@
 use std::ops::{Add, AddAssign, BitAnd, Div, Mul, Neg};
-use num_traits::{Num, zero, Zero};
+use num_traits::Zero;
 use crate::Matrix;
 
 //OVERLOADING + OPERATOR
@@ -14,7 +14,7 @@ impl<T> Add<Matrix<T>> for Matrix<T> where T : AddAssign + Copy + Add<Output = T
                 size : self.size,
                 data : {
                     let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| a + b).collect();
-                    data.into_boxed_slice()
+                    data
                 }
             }
         }
@@ -77,7 +77,7 @@ impl<T> Mul<Matrix<T>> for Matrix<T> where  T : Mul<Output = T> + AddAssign + Co
                 nb_lines: self.nb_lines,
                 nb_columns: rhs.nb_columns,
                 size: self.nb_lines * rhs.nb_columns,
-                data: res.into_boxed_slice(),
+                data: res,
             }
         }
         else {
@@ -114,7 +114,7 @@ impl<T> BitAnd for Matrix<T> where T : Mul<Output = T>  {
                 size : self.size,
                 data : {
                     let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| a * b).collect();
-                    data.into_boxed_slice()
+                    data
                 }
             }
         }
@@ -133,13 +133,13 @@ impl<T> Matrix<T> {
             size : self.size,
             data : {
                 let data : Vec<T> = self.into_iter().map(f).collect();
-                data.into_boxed_slice()
+                data
             }
         }
     }
 }
 
-impl<T> Matrix<T> where T : AddAssign + Clone + Zero{
+impl<T> Matrix<T> where T : AddAssign + Clone + Zero {
     pub fn sum_line(self) -> Matrix<T> {
         let nb_columns = self.nb_columns;
         Matrix {
@@ -147,11 +147,11 @@ impl<T> Matrix<T> where T : AddAssign + Clone + Zero{
             nb_lines: 1,
             size: nb_columns,
             data: {
-                let mut data: Vec<T> = vec![zero(); self.nb_columns];
+                let mut data: Vec<T> = vec![num_traits::zero(); self.nb_columns];
                 for (i, value) in (0..self.size).zip(self.into_iter()) {
                     data[i % nb_columns] += value;
                 }
-                data.into_boxed_slice()
+                data
             }
         }
     }
@@ -163,11 +163,11 @@ impl<T> Matrix<T> where T : AddAssign + Clone + Zero{
             nb_columns : 1,
             size: nb_lines,
             data: {
-                let mut data: Vec<T> = vec![zero(); self.nb_columns];
+                let mut data: Vec<T> = vec![num_traits::zero(); self.nb_columns];
                 for (i, value) in (0..self.size).zip(self.into_iter()) {
                     data[i / nb_lines] += value;
                 }
-                data.into_boxed_slice()
+                data
             }
         }
     }

@@ -1,4 +1,3 @@
-use num_traits::Num;
 use crate::Matrix;
 
 
@@ -68,6 +67,6 @@ impl<T> IntoIterator for Matrix<T> {
     type IntoIter = std::vec::IntoIter<T>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.data.into_vec().into_iter()
+        self.data.into_iter()
     }
 }
