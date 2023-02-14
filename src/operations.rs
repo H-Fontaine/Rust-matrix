@@ -58,35 +58,38 @@ impl<T> Neg for Matrix<T> where T : Neg<Output = T> {
     }
 }
 
-//OVERLOADING * OPERATOR FOR MATRIX
-impl<T> Mul<Matrix<T>> for Matrix<T> where  T : Mul<Output = T> + AddAssign + Copy {
+//OVERLOADING * OPERATOR FOR MATRIX AND MATRIX
+impl<T> Mul<Matrix<T>> for Matrix<T> where T : Mul<Output = T> + AddAssign + Copy {
     type Output = Matrix<T>;
-    
-    fn mul(self, rhs: Self) -> Self::Output {
-        let mut res = Vec::<T>::with_capacity(self.nb_lines * rhs.nb_columns);
+
+    fn mul(self, rhs: Matrix<T>) -> Self::Output {
         if self.nb_columns == rhs.nb_lines {
+            let size = self.nb_lines * rhs.nb_columns;
+            let mut res = Matrix {
+                nb_lines : self.nb_lines,
+                nb_columns : rhs.nb_columns,
+                size,
+                data : {
+                    let mut temp = Vec::with_capacity(size);
+                    unsafe {temp.set_len(size)}
+                    temp
+                }
+            };
             for i in 0..self.nb_lines {
                 for j in 0..rhs.nb_columns {
-                    res.push(self[i][0] * rhs[0][j]);
+                    res [i][j] = self[i][0] * rhs[0][j];
                     for k in 1..self.nb_columns {
-                        *res.last_mut().unwrap() += self[i][k] * rhs[k][j];
+                        res[i][j] += self[i][k] * rhs[k][j];
                     }
                 }
             }
-            Matrix {
-                nb_lines: self.nb_lines,
-                nb_columns: rhs.nb_columns,
-                size: self.nb_lines * rhs.nb_columns,
-                data: res,
-            }
-        }
-        else {
-            panic!("Can't multiply two matrix with no compatible shapes")
+            res
+        } else {
+            panic!("Can't multiply two matrix with no compatible shapes");
         }
     }
 }
-
-//OVERLOADING * OPERATOR FOR &MATRIX
+//OVERLOADING * OPERATOR FOR &MATRIX AND &MATRIX
 impl<'a, T> Mul<&'a Matrix<T>> for &'a Matrix<T> where T : Mul<Output = T> + AddAssign + Copy {
     type Output = Matrix<T>;
 
@@ -113,6 +116,68 @@ impl<'a, T> Mul<&'a Matrix<T>> for &'a Matrix<T> where T : Mul<Output = T> + Add
             }
             res
 
+        } else {
+            panic!("Can't multiply two matrix with no compatible shapes");
+        }
+    }
+}
+//OVERLOADING * OPERATOR FOR &MATRIX AND MATRIX
+impl<T> Mul<Matrix<T>> for &Matrix<T> where T : Mul<Output = T> + AddAssign + Copy {
+    type Output = Matrix<T>;
+
+    fn mul(self, rhs: Matrix<T>) -> Self::Output {
+        if self.nb_columns == rhs.nb_lines {
+            let size = self.nb_lines * rhs.nb_columns;
+            let mut res = Matrix {
+                nb_lines : self.nb_lines,
+                nb_columns : rhs.nb_columns,
+                size,
+                data : {
+                    let mut temp = Vec::with_capacity(size);
+                    unsafe {temp.set_len(size)}
+                    temp
+                }
+            };
+            for i in 0..self.nb_lines {
+                for j in 0..rhs.nb_columns {
+                    res [i][j] = self[i][0] * rhs[0][j];
+                    for k in 1..self.nb_columns {
+                        res[i][j] += self[i][k] * rhs[k][j];
+                    }
+                }
+            }
+            res
+        } else {
+            panic!("Can't multiply two matrix with no compatible shapes");
+        }
+    }
+}
+//OVERLOADING * OPERATOR FOR MATRIX AND &MATRIX
+impl<T> Mul<&Matrix<T>> for Matrix<T> where T : Mul<Output = T> + AddAssign + Copy {
+    type Output = Matrix<T>;
+
+    fn mul(self, rhs: &Matrix<T>) -> Self::Output {
+        if self.nb_columns == rhs.nb_lines {
+            let size = self.nb_lines * rhs.nb_columns;
+            let mut res = Matrix {
+                nb_lines : self.nb_lines,
+                nb_columns : rhs.nb_columns,
+                size,
+                data : {
+                    let mut temp = Vec::with_capacity(size);
+                    unsafe {temp.set_len(size)}
+                    temp
+                }
+            };
+            for i in 0..self.nb_lines {
+                for j in 0..rhs.nb_columns {
+                    res [i][j] = self[i][0] * rhs[0][j];
+                    for k in 1..self.nb_columns {
+                        res[i][j] += self[i][k] * rhs[k][j];
+                    }
+                }
+            }
+            res
         } else {
             panic!("Can't multiply two matrix with no compatible shapes");
         }
