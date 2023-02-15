@@ -2,11 +2,11 @@ use std::ops::{Add, AddAssign, BitAnd, Div, Mul, Neg};
 use num_traits::Zero;
 use crate::Matrix;
 
-//OVERLOADING + OPERATOR
+//OVERLOADING + OPERATOR FOR MATRIX AND MATRIX
 impl<T> Add<Matrix<T>> for Matrix<T> where T : AddAssign + Copy + Add<Output = T> {
     type Output = Matrix<T>;
 
-    fn add(mut self, rhs: Self) -> Self::Output {
+    fn add(mut self, rhs: Matrix<T>) -> Self::Output {
         if self.nb_lines == rhs.nb_lines && self.nb_columns == rhs.nb_columns {
             Matrix {
                 nb_lines : self.nb_lines,
@@ -14,6 +14,115 @@ impl<T> Add<Matrix<T>> for Matrix<T> where T : AddAssign + Copy + Add<Output = T
                 size : self.size,
                 data : {
                     let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| a + b).collect();
+                    data
+                }
+            }
+        }
+        else if self.nb_columns == rhs.nb_columns && rhs.nb_lines == 1 {
+            for i in 0..self.size {
+                self.data[i] += rhs.data[i % self.nb_columns];
+            }
+            self
+        }
+        else if self.nb_lines == rhs.nb_lines && rhs.nb_columns == 1 {
+            for i in 0..self.nb_lines {
+                for j in 0..self.nb_columns {
+                    self.data[i * self.nb_columns + j] += rhs.data[i];
+                }
+            }
+            self
+        }
+        else {
+            panic!("Can't add two matrix with different shape !!")
+        }
+    }
+}
+//OVERLOADING + OPERATOR FOR &MATRIX AND &MATRIX
+impl<'a, T> Add<&'a Matrix<T>> for &'a Matrix<T> where T : AddAssign + Copy + Add<Output = T> {
+    type Output = Matrix<T>;
+
+    fn add(self, rhs: &'a Matrix<T>) -> Self::Output {
+        if self.nb_lines == rhs.nb_lines && self.nb_columns == rhs.nb_columns {
+            Matrix {
+                nb_lines : self.nb_lines,
+                nb_columns : self.nb_columns,
+                size : self.size,
+                data : {
+                    let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| *a + *b).collect();
+                    data
+                }
+            }
+        }
+        else if self.nb_columns == rhs.nb_columns && rhs.nb_lines == 1 {
+            let mut res = self.clone();
+            for i in 0..self.size {
+                res.data[i] += rhs.data[i % self.nb_columns];
+            }
+            res
+        }
+        else if self.nb_lines == rhs.nb_lines && rhs.nb_columns == 1 {
+            let mut res = self.clone();
+            for i in 0..self.nb_lines {
+                for j in 0..self.nb_columns {
+                    res.data[i * self.nb_columns + j] += rhs.data[i];
+                }
+            }
+            res
+        }
+        else {
+            panic!("Can't add two matrix with different shape !!")
+        }
+    }
+}
+//OVERLOADING + OPERATOR FOR &MATRIX AND MATRIX
+impl<T> Add<Matrix<T>> for &Matrix<T> where T : AddAssign + Copy + Add<Output = T> {
+    type Output = Matrix<T>;
+
+    fn add(self, rhs: Matrix<T>) -> Self::Output {
+        if self.nb_lines == rhs.nb_lines && self.nb_columns == rhs.nb_columns {
+            Matrix {
+                nb_lines : self.nb_lines,
+                nb_columns : self.nb_columns,
+                size : self.size,
+                data : {
+                    let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| *a + b).collect();
+                    data
+                }
+            }
+        }
+        else if self.nb_columns == rhs.nb_columns && rhs.nb_lines == 1 {
+            let mut res = self.clone();
+            for i in 0..self.size {
+                res.data[i] += rhs.data[i % self.nb_columns];
+            }
+            res
+        }
+        else if self.nb_lines == rhs.nb_lines && rhs.nb_columns == 1 {
+            let mut res = self.clone();
+            for i in 0..self.nb_lines {
+                for j in 0..self.nb_columns {
+                    res.data[i * self.nb_columns + j] += rhs.data[i];
+                }
+            }
+            res
+        }
+        else {
+            panic!("Can't add two matrix with different shape !!")
+        }
+    }
+}
+//OVERLOADING + OPERATOR FOR MATRIX AND &MATRIX
+impl<T> Add<&Matrix<T>> for Matrix<T> where T : AddAssign + Copy + Add<Output = T> {
+    type Output = Matrix<T>;
+
+    fn add(mut self, rhs: &Matrix<T>) -> Self::Output {
+        if self.nb_lines == rhs.nb_lines && self.nb_columns == rhs.nb_columns {
+            Matrix {
+                nb_lines : self.nb_lines,
+                nb_columns : self.nb_columns,
+                size : self.size,
+                data : {
+                    let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| a + *b).collect();
                     data
                 }
             }
