@@ -1,4 +1,4 @@
-use matrix::{Concatenate, Matrix};
+use matrix::{Matrix};
 
 fn main() {
     let mut matrix1 : Matrix<u32> = Matrix::ones(3,3);
