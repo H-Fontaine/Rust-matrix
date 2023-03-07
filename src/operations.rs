@@ -2,38 +2,23 @@ use std::ops::{Add, AddAssign, BitAnd, Div, Mul, Neg};
 use num_traits::Zero;
 use crate::Matrix;
 
+static SHAPE_ERROR : &str = "Can't add two matrix with different shape !!";
+
 //OVERLOADING + OPERATOR FOR MATRIX AND MATRIX
 impl<T> Add<Matrix<T>> for Matrix<T> where T : AddAssign + Copy + Add<Output = T> {
     type Output = Matrix<T>;
 
-    fn add(mut self, rhs: Matrix<T>) -> Self::Output {
-        if self.nb_lines == rhs.nb_lines && self.nb_columns == rhs.nb_columns {
-            Matrix {
-                nb_lines : self.nb_lines,
-                nb_columns : self.nb_columns,
-                size : self.size,
-                data : {
-                    let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| a + b).collect();
-                    data
-                }
+    fn add(self, rhs: Matrix<T>) -> Self::Output {
+        assert_eq!(self.nb_columns, rhs.nb_columns, "{}", SHAPE_ERROR);
+        assert_eq!(self.nb_lines, rhs.nb_lines, "{}", SHAPE_ERROR);
+        Matrix {
+            nb_lines : self.nb_lines,
+            nb_columns : self.nb_columns,
+            size : self.size,
+            data : {
+                let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| a + b).collect();
+                data
             }
-        }
-        else if self.nb_columns == rhs.nb_columns && rhs.nb_lines == 1 {
-            for i in 0..self.size {
-                self.data[i] += rhs.data[i % self.nb_columns];
-            }
-            self
-        }
-        else if self.nb_lines == rhs.nb_lines && rhs.nb_columns == 1 {
-            for i in 0..self.nb_lines {
-                for j in 0..self.nb_columns {
-                    self.data[i * self.nb_columns + j] += rhs.data[i];
-                }
-            }
-            self
-        }
-        else {
-            panic!("Can't add two matrix with different shape !!")
         }
     }
 }
@@ -42,35 +27,16 @@ impl<'a, T> Add<&'a Matrix<T>> for &'a Matrix<T> where T : AddAssign + Copy + Ad
     type Output = Matrix<T>;
 
     fn add(self, rhs: &'a Matrix<T>) -> Self::Output {
-        if self.nb_lines == rhs.nb_lines && self.nb_columns == rhs.nb_columns {
-            Matrix {
-                nb_lines : self.nb_lines,
-                nb_columns : self.nb_columns,
-                size : self.size,
-                data : {
-                    let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| *a + *b).collect();
-                    data
-                }
+        assert_eq!(self.nb_columns, rhs.nb_columns, "{}", SHAPE_ERROR);
+        assert_eq!(self.nb_lines, rhs.nb_lines, "{}", SHAPE_ERROR);
+        Matrix {
+            nb_lines : self.nb_lines,
+            nb_columns : self.nb_columns,
+            size : self.size,
+            data : {
+                let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| *a + *b).collect();
+                data
             }
-        }
-        else if self.nb_columns == rhs.nb_columns && rhs.nb_lines == 1 {
-            let mut res = self.clone();
-            for i in 0..self.size {
-                res.data[i] += rhs.data[i % self.nb_columns];
-            }
-            res
-        }
-        else if self.nb_lines == rhs.nb_lines && rhs.nb_columns == 1 {
-            let mut res = self.clone();
-            for i in 0..self.nb_lines {
-                for j in 0..self.nb_columns {
-                    res.data[i * self.nb_columns + j] += rhs.data[i];
-                }
-            }
-            res
-        }
-        else {
-            panic!("Can't add two matrix with different shape !!")
         }
     }
 }
@@ -79,35 +45,16 @@ impl<T> Add<Matrix<T>> for &Matrix<T> where T : AddAssign + Copy + Add<Output = 
     type Output = Matrix<T>;
 
     fn add(self, rhs: Matrix<T>) -> Self::Output {
-        if self.nb_lines == rhs.nb_lines && self.nb_columns == rhs.nb_columns {
-            Matrix {
-                nb_lines : self.nb_lines,
-                nb_columns : self.nb_columns,
-                size : self.size,
-                data : {
-                    let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| *a + b).collect();
-                    data
-                }
+        assert_eq!(self.nb_columns, rhs.nb_columns, "{}", SHAPE_ERROR);
+        assert_eq!(self.nb_lines, rhs.nb_lines, "{}", SHAPE_ERROR);
+        Matrix {
+            nb_lines : self.nb_lines,
+            nb_columns : self.nb_columns,
+            size : self.size,
+            data : {
+                let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| *a + b).collect();
+                data
             }
-        }
-        else if self.nb_columns == rhs.nb_columns && rhs.nb_lines == 1 {
-            let mut res = self.clone();
-            for i in 0..self.size {
-                res.data[i] += rhs.data[i % self.nb_columns];
-            }
-            res
-        }
-        else if self.nb_lines == rhs.nb_lines && rhs.nb_columns == 1 {
-            let mut res = self.clone();
-            for i in 0..self.nb_lines {
-                for j in 0..self.nb_columns {
-                    res.data[i * self.nb_columns + j] += rhs.data[i];
-                }
-            }
-            res
-        }
-        else {
-            panic!("Can't add two matrix with different shape !!")
         }
     }
 }
@@ -115,34 +62,17 @@ impl<T> Add<Matrix<T>> for &Matrix<T> where T : AddAssign + Copy + Add<Output = 
 impl<T> Add<&Matrix<T>> for Matrix<T> where T : AddAssign + Copy + Add<Output = T> {
     type Output = Matrix<T>;
 
-    fn add(mut self, rhs: &Matrix<T>) -> Self::Output {
-        if self.nb_lines == rhs.nb_lines && self.nb_columns == rhs.nb_columns {
-            Matrix {
-                nb_lines : self.nb_lines,
-                nb_columns : self.nb_columns,
-                size : self.size,
-                data : {
-                    let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| a + *b).collect();
-                    data
-                }
+    fn add(self, rhs: &Matrix<T>) -> Self::Output {
+        assert_eq!(self.nb_columns, rhs.nb_columns, "{}", SHAPE_ERROR);
+        assert_eq!(self.nb_lines, rhs.nb_lines, "{}", SHAPE_ERROR);
+        Matrix {
+            nb_lines: self.nb_lines,
+            nb_columns: self.nb_columns,
+            size: self.size,
+            data: {
+                let data: Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| a + *b).collect();
+                data
             }
-        }
-        else if self.nb_columns == rhs.nb_columns && rhs.nb_lines == 1 {
-            for i in 0..self.size {
-                self.data[i] += rhs.data[i % self.nb_columns];
-            }
-            self
-        }
-        else if self.nb_lines == rhs.nb_lines && rhs.nb_columns == 1 {
-            for i in 0..self.nb_lines {
-                for j in 0..self.nb_columns {
-                    self.data[i * self.nb_columns + j] += rhs.data[i];
-                }
-            }
-            self
-        }
-        else {
-            panic!("Can't add two matrix with different shape !!")
         }
     }
 }
@@ -158,6 +88,27 @@ impl<T> AddAssign<Matrix<T>> for Matrix<T> where T : AddAssign {
     }
 }
 
+
+//ADDING ALONG COLUMNS OR LINES
+impl<'a, T> Matrix<T> where T : AddAssign<&'a T> + 'a {
+    pub fn add_to_lines(&mut self, rhs : &'a Matrix<T>) {
+        assert_eq!(rhs.nb_lines, 1, "The matrix to add must have exactly one line");
+        assert_eq!(self.nb_columns, rhs.nb_columns, "Both matrix must have the same number of columns");
+        for i in 0..self.size {
+            self.data[i] += &rhs.data[i % self.nb_columns];
+        }
+    }
+
+    pub fn add_to_columns(&mut self, rhs : &'a Matrix<T>) {
+        assert_eq!(rhs.nb_columns, 1, "The matrix to add must have exactly one column");
+        assert_eq!(self.nb_lines, rhs.nb_lines, "Both matrix must have the same number of lines");
+        for i in 0..self.nb_lines {
+            for j in 0..self.nb_columns {
+                self.data[i * self.nb_columns + j] += &rhs.data[i];
+            }
+        }
+    }
+}
 
 //OVERLOADING NEG (-) OPERATOR
 impl<T> Neg for Matrix<T> where T : Neg<Output = T> {
