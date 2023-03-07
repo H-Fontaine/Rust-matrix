@@ -7,7 +7,7 @@ impl<T> Matrix<T> {
     Create a new Matrix by selection the lines according to the provided index
     - chosen_lines : &Vec<usize>            contains the index of the lines to select
      */
-    pub fn chose_lines(&self, chosen_lines : &Vec<usize>) -> Matrix<T>  where T : Copy {
+    pub fn chose_lines_by_index(&self, chosen_lines : &Vec<usize>) -> Matrix<T>  where T : Copy {
         let nb_of_chosen_lines = chosen_lines.len();
         Matrix {
             nb_lines : nb_of_chosen_lines,
@@ -26,9 +26,9 @@ impl<T> Matrix<T> {
     /*
     Select the provided number of lines using a uniform distribution
      */
-    pub fn chose_rnd_lines(&self, nb_of_selected_line : usize) -> Matrix<T> where T : Copy {
+    pub fn chose_rnd_lines_by_index(&self, nb_of_selected_line : usize) -> Matrix<T> where T : Copy {
         let range = Uniform::new(0, self.nb_lines);
-        self.chose_lines(&thread_rng().sample_iter(range).take(nb_of_selected_line).collect())
+        self.chose_lines_by_index(&thread_rng().sample_iter(range).take(nb_of_selected_line).collect())
     }
 
 
