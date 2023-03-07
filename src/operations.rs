@@ -3,15 +3,16 @@ use std::ops::{Add, AddAssign, BitAnd, Div, Mul, Neg};
 use num_traits::Zero;
 use crate::Matrix;
 
-static SHAPE_ERROR : &str = "Can't add two matrix with different shape !!";
 
-//OVERLOADING + OPERATOR FOR MATRIX AND MATRIX
-impl<T> Add<Matrix<T>> for Matrix<T> where T : AddAssign + Copy + Add<Output = T> {
+
+//OVERLOADING + OPERATOR FOR MATRIX
+static ADDING_ERROR : &str = "Can't add two matrces with different shape !!";
+
+impl<T> Add<Matrix<T>> for Matrix<T> where T : Add<Output = T> {
     type Output = Matrix<T>;
 
     fn add(self, rhs: Matrix<T>) -> Self::Output {
-        assert_eq!(self.nb_columns, rhs.nb_columns, "{}", SHAPE_ERROR);
-        assert_eq!(self.nb_lines, rhs.nb_lines, "{}", SHAPE_ERROR);
+        assert_eq!(self.shape(), rhs.shape(), "{}", ADDING_ERROR);
         Matrix {
             nb_lines : self.nb_lines,
             nb_columns : self.nb_columns,
@@ -23,13 +24,11 @@ impl<T> Add<Matrix<T>> for Matrix<T> where T : AddAssign + Copy + Add<Output = T
         }
     }
 }
-//OVERLOADING + OPERATOR FOR &MATRIX AND &MATRIX
-impl<'a, T> Add<&'a Matrix<T>> for &'a Matrix<T> where T : AddAssign + Copy + Add<Output = T> {
+impl<'a, T> Add<&'a Matrix<T>> for &'a Matrix<T> where T : Add<Output = T> + Copy {
     type Output = Matrix<T>;
 
     fn add(self, rhs: &'a Matrix<T>) -> Self::Output {
-        assert_eq!(self.nb_columns, rhs.nb_columns, "{}", SHAPE_ERROR);
-        assert_eq!(self.nb_lines, rhs.nb_lines, "{}", SHAPE_ERROR);
+        assert_eq!(self.shape(), rhs.shape(), "{}", ADDING_ERROR);
         Matrix {
             nb_lines : self.nb_lines,
             nb_columns : self.nb_columns,
@@ -41,13 +40,11 @@ impl<'a, T> Add<&'a Matrix<T>> for &'a Matrix<T> where T : AddAssign + Copy + Ad
         }
     }
 }
-//OVERLOADING + OPERATOR FOR &MATRIX AND MATRIX
-impl<T> Add<Matrix<T>> for &Matrix<T> where T : AddAssign + Copy + Add<Output = T> {
+impl<T> Add<Matrix<T>> for &Matrix<T> where T : Add<Output = T> + Copy {
     type Output = Matrix<T>;
 
     fn add(self, rhs: Matrix<T>) -> Self::Output {
-        assert_eq!(self.nb_columns, rhs.nb_columns, "{}", SHAPE_ERROR);
-        assert_eq!(self.nb_lines, rhs.nb_lines, "{}", SHAPE_ERROR);
+        assert_eq!(self.shape(), rhs.shape(), "{}", ADDING_ERROR);
         Matrix {
             nb_lines : self.nb_lines,
             nb_columns : self.nb_columns,
@@ -59,13 +56,11 @@ impl<T> Add<Matrix<T>> for &Matrix<T> where T : AddAssign + Copy + Add<Output = 
         }
     }
 }
-//OVERLOADING + OPERATOR FOR MATRIX AND &MATRIX
-impl<T> Add<&Matrix<T>> for Matrix<T> where T : AddAssign + Copy + Add<Output = T> {
+impl<T> Add<&Matrix<T>> for Matrix<T> where T : Add<Output = T> + Copy {
     type Output = Matrix<T>;
 
     fn add(self, rhs: &Matrix<T>) -> Self::Output {
-        assert_eq!(self.nb_columns, rhs.nb_columns, "{}", SHAPE_ERROR);
-        assert_eq!(self.nb_lines, rhs.nb_lines, "{}", SHAPE_ERROR);
+        assert_eq!(self.shape(), rhs.shape(), "{}", ADDING_ERROR);
         Matrix {
             nb_lines: self.nb_lines,
             nb_columns: self.nb_columns,
@@ -78,6 +73,15 @@ impl<T> Add<&Matrix<T>> for Matrix<T> where T : AddAssign + Copy + Add<Output = 
     }
 }
 
+
+
+
+
+
+
+
+
+
 //OVERLOADING += OPERATOR
 impl<T> AddAssign<Matrix<T>> for Matrix<T> where T : AddAssign {
     fn add_assign(&mut self, rhs: Self) {
@@ -88,6 +92,14 @@ impl<T> AddAssign<Matrix<T>> for Matrix<T> where T : AddAssign {
         }
     }
 }
+
+
+
+
+
+
+
+
 
 //ADDING ALONG COLUMNS OR LINES
 impl<T> Matrix<T> where T : AddAssign + Copy {
@@ -112,6 +124,11 @@ impl<T> Matrix<T> where T : AddAssign + Copy {
     }
 }
 
+
+
+
+
+
 //OVERLOADING NEG (-) OPERATOR
 impl<T> Neg for Matrix<T> where T : Neg<Output = T> {
     type Output = Matrix<T>;
@@ -120,131 +137,129 @@ impl<T> Neg for Matrix<T> where T : Neg<Output = T> {
     }
 }
 
-//OVERLOADING * OPERATOR FOR MATRIX AND MATRIX
+
+
+
+
+
+
+
+//OVERLOADING * OPERATOR FOR MATRIX
+static MULTIPLICATION_ERROR : &str = "Can't multiply matrices with incompatible shapes";
+
 impl<T> Mul<Matrix<T>> for Matrix<T> where T : Mul<Output = T> + AddAssign + Copy {
     type Output = Matrix<T>;
 
     fn mul(self, rhs: Matrix<T>) -> Self::Output {
-        if self.nb_columns == rhs.nb_lines {
-            let size = self.nb_lines * rhs.nb_columns;
-            let mut res = Matrix {
-                nb_lines : self.nb_lines,
-                nb_columns : rhs.nb_columns,
-                size,
-                data : {
-                    let mut temp = Vec::with_capacity(size);
-                    unsafe {temp.set_len(size)}
-                    temp
-                }
-            };
-            for i in 0..self.nb_lines {
-                for j in 0..rhs.nb_columns {
-                    res [i][j] = self[i][0] * rhs[0][j];
-                    for k in 1..self.nb_columns {
-                        res[i][j] += self[i][k] * rhs[k][j];
-                    }
+        assert_eq!(self.nb_columns, rhs.nb_lines, "{}", MULTIPLICATION_ERROR);
+        let size = self.nb_lines * rhs.nb_columns;
+        let mut res = Matrix {
+            nb_lines : self.nb_lines,
+            nb_columns : rhs.nb_columns,
+            size,
+            data : {
+                let mut temp = Vec::with_capacity(size);
+                unsafe {temp.set_len(size)}
+                temp
+            }
+        };
+        for i in 0..self.nb_lines {
+            for j in 0..rhs.nb_columns {
+                res [i][j] = self[i][0] * rhs[0][j];
+                for k in 1..self.nb_columns {
+                    res[i][j] += self[i][k] * rhs[k][j];
                 }
             }
-            res
-        } else {
-            panic!("Can't multiply two matrix with no compatible shapes");
         }
+        res
     }
 }
-//OVERLOADING * OPERATOR FOR &MATRIX AND &MATRIX
 impl<'a, T> Mul<&'a Matrix<T>> for &'a Matrix<T> where T : Mul<Output = T> + AddAssign + Copy {
     type Output = Matrix<T>;
 
     fn mul(self, rhs: &'a Matrix<T>) -> Self::Output {
-        if self.nb_columns == rhs.nb_lines {
-            let size = self.nb_lines * rhs.nb_columns;
-            let mut res = Matrix {
-                nb_lines : self.nb_lines,
-                nb_columns : rhs.nb_columns,
-                size,
-                data : {
-                    let mut temp = Vec::with_capacity(size);
-                    unsafe {temp.set_len(size)}
-                    temp
-                }
-            };
-            for i in 0..self.nb_lines {
-                for j in 0..rhs.nb_columns {
-                    res [i][j] = self[i][0] * rhs[0][j];
-                    for k in 1..self.nb_columns {
-                        res[i][j] += self[i][k] * rhs[k][j];
-                    }
+        assert_eq!(self.nb_columns, rhs.nb_lines, "{}", MULTIPLICATION_ERROR);
+        let size = self.nb_lines * rhs.nb_columns;
+        let mut res = Matrix {
+            nb_lines : self.nb_lines,
+            nb_columns : rhs.nb_columns,
+            size,
+            data : {
+                let mut temp = Vec::with_capacity(size);
+                unsafe {temp.set_len(size)}
+                temp
+            }
+        };
+        for i in 0..self.nb_lines {
+            for j in 0..rhs.nb_columns {
+                res [i][j] = self[i][0] * rhs[0][j];
+                for k in 1..self.nb_columns {
+                    res[i][j] += self[i][k] * rhs[k][j];
                 }
             }
-            res
-
-        } else {
-            panic!("Can't multiply two matrix with no compatible shapes");
         }
+        res
     }
 }
-//OVERLOADING * OPERATOR FOR &MATRIX AND MATRIX
 impl<T> Mul<Matrix<T>> for &Matrix<T> where T : Mul<Output = T> + AddAssign + Copy {
     type Output = Matrix<T>;
 
     fn mul(self, rhs: Matrix<T>) -> Self::Output {
-        if self.nb_columns == rhs.nb_lines {
-            let size = self.nb_lines * rhs.nb_columns;
-            let mut res = Matrix {
-                nb_lines : self.nb_lines,
-                nb_columns : rhs.nb_columns,
-                size,
-                data : {
-                    let mut temp = Vec::with_capacity(size);
-                    unsafe {temp.set_len(size)}
-                    temp
-                }
-            };
-            for i in 0..self.nb_lines {
-                for j in 0..rhs.nb_columns {
-                    res [i][j] = self[i][0] * rhs[0][j];
-                    for k in 1..self.nb_columns {
-                        res[i][j] += self[i][k] * rhs[k][j];
-                    }
+        assert_eq!(self.nb_columns, rhs.nb_lines, "{}", MULTIPLICATION_ERROR);
+        let size = self.nb_lines * rhs.nb_columns;
+        let mut res = Matrix {
+            nb_lines : self.nb_lines,
+            nb_columns : rhs.nb_columns,
+            size,
+            data : {
+                let mut temp = Vec::with_capacity(size);
+                unsafe {temp.set_len(size)}
+                temp
+            }
+        };
+        for i in 0..self.nb_lines {
+            for j in 0..rhs.nb_columns {
+                res [i][j] = self[i][0] * rhs[0][j];
+                for k in 1..self.nb_columns {
+                    res[i][j] += self[i][k] * rhs[k][j];
                 }
             }
-            res
-        } else {
-            panic!("Can't multiply two matrix with no compatible shapes");
         }
+        res
     }
 }
-//OVERLOADING * OPERATOR FOR MATRIX AND &MATRIX
 impl<T> Mul<&Matrix<T>> for Matrix<T> where T : Mul<Output = T> + AddAssign + Copy {
     type Output = Matrix<T>;
 
     fn mul(self, rhs: &Matrix<T>) -> Self::Output {
-        if self.nb_columns == rhs.nb_lines {
-            let size = self.nb_lines * rhs.nb_columns;
-            let mut res = Matrix {
-                nb_lines : self.nb_lines,
-                nb_columns : rhs.nb_columns,
-                size,
-                data : {
-                    let mut temp = Vec::with_capacity(size);
-                    unsafe {temp.set_len(size)}
-                    temp
-                }
-            };
-            for i in 0..self.nb_lines {
-                for j in 0..rhs.nb_columns {
-                    res [i][j] = self[i][0] * rhs[0][j];
-                    for k in 1..self.nb_columns {
-                        res[i][j] += self[i][k] * rhs[k][j];
-                    }
+        assert_eq!(self.nb_columns, rhs.nb_lines, "{}", MULTIPLICATION_ERROR);
+        let size = self.nb_lines * rhs.nb_columns;
+        let mut res = Matrix {
+            nb_lines : self.nb_lines,
+            nb_columns : rhs.nb_columns,
+            size,
+            data : {
+                let mut temp = Vec::with_capacity(size);
+                unsafe {temp.set_len(size)}
+                temp
+            }
+        };
+        for i in 0..self.nb_lines {
+            for j in 0..rhs.nb_columns {
+                res [i][j] = self[i][0] * rhs[0][j];
+                for k in 1..self.nb_columns {
+                    res[i][j] += self[i][k] * rhs[k][j];
                 }
             }
-            res
-        } else {
-            panic!("Can't multiply two matrix with no compatible shapes");
         }
+        res
     }
 }
+
+
+
+
+
 
 //OVERLOADING * OPERATOR FOR SCALARS
 impl<T> Mul<T> for Matrix<T> where T : Mul<T, Output = T> + Copy {
@@ -254,6 +269,11 @@ impl<T> Mul<T> for Matrix<T> where T : Mul<T, Output = T> + Copy {
     }
 }
 
+
+
+
+
+
 //OVERLOADING / OPERATOR FOR SCALARS
 impl<T> Div<T> for Matrix<T> where T : Div<T, Output = T> + Copy {
     type Output = Matrix<T>;
@@ -262,24 +282,26 @@ impl<T> Div<T> for Matrix<T> where T : Div<T, Output = T> + Copy {
     }
 }
 
+
+
+
+
+
+
 //OVERLOADING & OPERATOR for the Hadamard product
 impl<T> BitAnd for Matrix<T> where T : Mul<Output = T>  {
     type Output = Matrix<T>;
 
     fn bitand(self, rhs: Self) -> Self::Output {
-        if self.nb_lines == rhs.nb_lines && self.nb_columns == rhs.nb_columns {
-            Matrix {
-                nb_lines : self.nb_lines,
-                nb_columns : self.nb_columns,
-                size : self.size,
-                data : {
-                    let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| a * b).collect();
-                    data
-                }
+        assert_eq!(self.shape(), rhs.shape(), "{}", ADDING_ERROR);
+        Matrix {
+            nb_lines : self.nb_lines,
+            nb_columns : self.nb_columns,
+            size : self.size,
+            data : {
+                let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| a * b).collect();
+                data
             }
-        }
-        else {
-            panic!("Can't multiply index to index two matrix with different shape !!")
         }
     }
 }
