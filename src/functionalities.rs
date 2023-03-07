@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use rand::distributions::Uniform;
 use rand::{Rng, thread_rng};
 use crate::Matrix;
@@ -7,7 +8,8 @@ impl<T> Matrix<T> {
     Create a new Matrix by selection the lines according to the provided index
     - chosen_lines : &Vec<usize>            contains the index of the lines to select
      */
-    pub fn chose_lines_by_index(&self, chosen_lines : &Vec<usize>) -> Matrix<T>  where T : Copy {
+    pub fn chose_lines_by_index<V>(&self, chosen_lines : V) -> Matrix<T>  where T : Copy, V : Borrow<Vec<usize>> {
+        let chosen_lines = chosen_lines.borrow();
         let nb_of_chosen_lines = chosen_lines.len();
         Matrix {
             nb_lines : nb_of_chosen_lines,
@@ -34,7 +36,8 @@ impl<T> Matrix<T> {
     /*
     Select the lines according to the provided boolean vector, if true the line is selected, not otherwise
      */
-    pub fn chose_lines_by_bool(&self, bools : &Vec<bool>) -> Matrix<T> where T : Copy {
+    pub fn chose_lines_by_bool<V>(&self, bools : V) -> Matrix<T> where T : Copy, V : Borrow<Vec<bool>> {
+        let bools = bools.borrow();
         assert_eq!(bools.len(), self.nb_lines, "The length of the provided vector must be the same as the number of line of the matrix");
         let mut data = Vec::new();
         let mut nb_lines = 0;
