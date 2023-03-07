@@ -6,7 +6,7 @@ use crate::Matrix;
 
 
 //OVERLOADING + OPERATOR FOR MATRIX
-static ADDING_ERROR : &str = "Can't add two matrces with different shape !!";
+static ADDING_ERROR : &str = "Can't add two matrices with different shape !!";
 
 impl<T> Add<Matrix<T>> for Matrix<T> where T : Add<Output = T> {
     type Output = Matrix<T>;
