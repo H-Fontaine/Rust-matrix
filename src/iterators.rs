@@ -39,7 +39,7 @@ impl<'a, T> Iterator for MatrixRefIterator<'a, T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.index < self.parent.size {
+        if self.index < self.parent.size() {
             let res = &self.parent.data[self.index];
             self.index += 1;
             Some(res)

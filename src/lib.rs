@@ -1,29 +1,29 @@
 use std::fmt::Display;
 use std::ops::{Index, IndexMut};
 use num_traits::{one, zero, Zero, One};
-use rand::{Rng, distributions::Distribution, thread_rng};
-use rand::distributions::Uniform;
+use rand::{Rng, distributions::Distribution};
 
 
 mod operations;
 mod iterators;
 mod functionalities;
+mod traitsimpl;
+mod test;
 
+#[derive(Debug)]
 pub struct Matrix<T> {
     nb_lines : usize,
     nb_columns : usize,
-    size: usize,
     data : Vec<T>,
 }
 
 
 //METHODS TO CREATE NEW MATRIX
 impl<T> Matrix<T> {
-    pub fn new() -> Matrix<T> { //create a matrix filled with the value "value"
+    pub fn new() -> Matrix<T> {
         Matrix {
             nb_lines : 0,
             nb_columns : 0,
-            size : 0,
             data : Vec::new(),
         }
     }
@@ -32,7 +32,6 @@ impl<T> Matrix<T> {
         Matrix {
             nb_lines,
             nb_columns,
-            size : nb_lines * nb_columns,
             data : vec![zero(); nb_lines * nb_columns],
         }
     }
@@ -41,9 +40,16 @@ impl<T> Matrix<T> {
         Matrix {
             nb_lines,
             nb_columns,
-            size : nb_lines * nb_columns,
             data : vec![one(); nb_lines * nb_columns],
         }
+    }
+
+    pub fn identity(n : usize) -> Matrix<T> where T : One + Zero + Copy {
+        let mut identity = Matrix::zeros(n, n);
+        for i in 0..n {
+            identity[i][i] = T::one();
+        }
+        identity
     }
 
     pub fn new_rand<R : ?Sized + Rng, D : Distribution<T>>(nb_lines: usize, nb_columns: usize, rng: &mut R, distribution: D) -> Matrix<T> { //create a matrix filled with random values
@@ -51,13 +57,12 @@ impl<T> Matrix<T> {
         Matrix {
             nb_lines,
             nb_columns,
-            size : nb_lines * nb_columns,
             data,
         }
     }
 
     pub fn t(&self) -> Matrix<T> where T : Copy { //return the transposed matrix
-        let mut data = Vec::<T>::with_capacity(self.size);
+        let mut data = Vec::<T>::with_capacity(self.size());
         for j in 0..self.nb_columns {
             for i in 0..self.nb_lines {
                 data.push(self[i][j])
@@ -66,7 +71,6 @@ impl<T> Matrix<T> {
         Matrix {
             nb_lines : self.nb_columns,
             nb_columns : self.nb_lines,
-            size : self.size,
             data,
         }
     }
@@ -84,7 +88,7 @@ impl<T> Matrix<T> {
     }
 
     pub fn size(&self) -> usize {
-        self.size
+        self.nb_lines * self.nb_columns
     }
 
     pub fn shape(&self) -> (usize, usize) {
@@ -98,7 +102,6 @@ impl<T> Clone for Matrix<T> where T : Clone {
         Matrix {
             nb_lines : self.nb_lines,
             nb_columns : self.nb_columns,
-            size : self.size,
             data : self.data.clone(),
         }
     }

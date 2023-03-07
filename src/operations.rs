@@ -16,7 +16,6 @@ impl<T> Add<Matrix<T>> for Matrix<T> where T : Add<Output = T> {
         Matrix {
             nb_lines : self.nb_lines,
             nb_columns : self.nb_columns,
-            size : self.size,
             data : {
                 let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| a + b).collect();
                 data
@@ -32,7 +31,6 @@ impl<'a, T> Add<&'a Matrix<T>> for &'a Matrix<T> where T : Add<Output = T> + Cop
         Matrix {
             nb_lines : self.nb_lines,
             nb_columns : self.nb_columns,
-            size : self.size,
             data : {
                 let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| *a + *b).collect();
                 data
@@ -48,7 +46,6 @@ impl<T> Add<Matrix<T>> for &Matrix<T> where T : Add<Output = T> + Copy {
         Matrix {
             nb_lines : self.nb_lines,
             nb_columns : self.nb_columns,
-            size : self.size,
             data : {
                 let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| *a + b).collect();
                 data
@@ -64,7 +61,6 @@ impl<T> Add<&Matrix<T>> for Matrix<T> where T : Add<Output = T> + Copy {
         Matrix {
             nb_lines: self.nb_lines,
             nb_columns: self.nb_columns,
-            size: self.size,
             data: {
                 let data: Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| a + *b).collect();
                 data
@@ -103,16 +99,17 @@ impl<T> AddAssign<Matrix<T>> for Matrix<T> where T : AddAssign {
 
 //ADDING ALONG COLUMNS OR LINES
 impl<T> Matrix<T> where T : AddAssign + Copy {
-    pub fn add_to_lines<M>(&mut self, rhs : M) where M : Borrow<Matrix<T>> {
+    pub fn add_to_lines<M>(mut self, rhs : M) -> Matrix<T> where M : Borrow<Matrix<T>> {
         let matrix_line = rhs.borrow();
         assert_eq!(matrix_line.nb_lines, 1, "The matrix to add must have exactly one line");
         assert_eq!(self.nb_columns, matrix_line.nb_columns, "Both matrix must have the same number of columns");
-        for i in 0..self.size {
+        for i in 0..self.size() {
             self.data[i] += matrix_line.data[i % self.nb_columns];
         }
+        self
     }
 
-    pub fn add_to_columns<M>(&mut self, rhs : M) where M : Borrow<Matrix<T>> {
+    pub fn add_to_columns<M>(mut self, rhs : M) -> Matrix<T> where M : Borrow<Matrix<T>> {
         let matrix_column = rhs.borrow();
         assert_eq!(matrix_column.nb_columns, 1, "The matrix to add must have exactly one column");
         assert_eq!(self.nb_lines, matrix_column.nb_lines, "Both matrix must have the same number of lines");
@@ -121,6 +118,7 @@ impl<T> Matrix<T> where T : AddAssign + Copy {
                 self.data[i * self.nb_columns + j] += matrix_column.data[i];
             }
         }
+        self
     }
 }
 
@@ -156,7 +154,6 @@ impl<T> Mul<Matrix<T>> for Matrix<T> where T : Mul<Output = T> + AddAssign + Cop
         let mut res = Matrix {
             nb_lines : self.nb_lines,
             nb_columns : rhs.nb_columns,
-            size,
             data : {
                 let mut temp = Vec::with_capacity(size);
                 unsafe {temp.set_len(size)}
@@ -183,7 +180,6 @@ impl<'a, T> Mul<&'a Matrix<T>> for &'a Matrix<T> where T : Mul<Output = T> + Add
         let mut res = Matrix {
             nb_lines : self.nb_lines,
             nb_columns : rhs.nb_columns,
-            size,
             data : {
                 let mut temp = Vec::with_capacity(size);
                 unsafe {temp.set_len(size)}
@@ -210,7 +206,6 @@ impl<T> Mul<Matrix<T>> for &Matrix<T> where T : Mul<Output = T> + AddAssign + Co
         let mut res = Matrix {
             nb_lines : self.nb_lines,
             nb_columns : rhs.nb_columns,
-            size,
             data : {
                 let mut temp = Vec::with_capacity(size);
                 unsafe {temp.set_len(size)}
@@ -237,7 +232,6 @@ impl<T> Mul<&Matrix<T>> for Matrix<T> where T : Mul<Output = T> + AddAssign + Co
         let mut res = Matrix {
             nb_lines : self.nb_lines,
             nb_columns : rhs.nb_columns,
-            size,
             data : {
                 let mut temp = Vec::with_capacity(size);
                 unsafe {temp.set_len(size)}
@@ -289,15 +283,16 @@ impl<T> Div<T> for Matrix<T> where T : Div<T, Output = T> + Copy {
 
 
 //OVERLOADING & OPERATOR for the Hadamard product
+static HADAMAR_PRODUCT_ERROR : &str = "Can't make the Hadamard product of matrices with different shapes";
+
 impl<T> BitAnd for Matrix<T> where T : Mul<Output = T>  {
     type Output = Matrix<T>;
 
     fn bitand(self, rhs: Self) -> Self::Output {
-        assert_eq!(self.shape(), rhs.shape(), "{}", ADDING_ERROR);
+        assert_eq!(self.shape(), rhs.shape(), "{}", HADAMAR_PRODUCT_ERROR);
         Matrix {
             nb_lines : self.nb_lines,
             nb_columns : self.nb_columns,
-            size : self.size,
             data : {
                 let data : Vec<T> = self.into_iter().zip(rhs.into_iter()).map(|(a, b)| a * b).collect();
                 data
@@ -312,7 +307,6 @@ impl<T> Matrix<T> {
         Matrix {
             nb_lines : self.nb_lines,
             nb_columns : self.nb_columns,
-            size : self.size,
             data : {
                 let data : Vec<T> = self.into_iter().map(f).collect();
                 data
@@ -327,10 +321,9 @@ impl<T> Matrix<T> where T : AddAssign + Clone + Zero {
         Matrix {
             nb_columns,
             nb_lines: 1,
-            size: nb_columns,
             data: {
                 let mut data: Vec<T> = vec![num_traits::zero(); self.nb_columns];
-                for (i, value) in (0..self.size).zip(self.into_iter()) {
+                for (i, value) in (0..self.size()).zip(self.into_iter()) {
                     data[i % nb_columns] += value;
                 }
                 data
@@ -343,10 +336,9 @@ impl<T> Matrix<T> where T : AddAssign + Clone + Zero {
         Matrix {
             nb_lines,
             nb_columns : 1,
-            size: nb_lines,
             data: {
                 let mut data: Vec<T> = vec![num_traits::zero(); self.nb_columns];
-                for (i, value) in (0..self.size).zip(self.into_iter()) {
+                for (i, value) in (0..self.size()).zip(self.into_iter()) {
                     data[i / nb_lines] += value;
                 }
                 data

@@ -14,7 +14,6 @@ impl<T> Matrix<T> {
         Matrix {
             nb_lines : nb_of_chosen_lines,
             nb_columns : self.nb_columns,
-            size : self.nb_columns * nb_of_chosen_lines,
             data : {
                 let mut data = Vec::<T>::with_capacity(self.nb_columns * nb_of_chosen_lines);
                 for i in 0..nb_of_chosen_lines {
@@ -48,7 +47,6 @@ impl<T> Matrix<T> {
             }
         }
         Matrix {
-            size: self.nb_columns * nb_lines,
             nb_columns : self.nb_columns,
             nb_lines,
             data,
@@ -76,7 +74,6 @@ impl<T> Matrix<T> {
             res.push(Matrix {
                 nb_lines: sizes[i],
                 nb_columns,
-                size: sizes[i] * nb_columns,
                 data: matrice_iter.by_ref().take(sizes[i] * nb_columns).collect(),
             })
         }
@@ -99,7 +96,6 @@ impl<T> Matrix<T> {
         Matrix {
             nb_lines,
             nb_columns,
-            size,
             data,
         }
     }
