@@ -86,6 +86,10 @@ impl<T> Matrix<T> {
     pub fn size(&self) -> usize {
         self.size
     }
+
+    pub fn shape(&self) -> (usize, usize) {
+        (self.nb_lines, self.nb_columns)
+    }
 }
 
 //IMPLEMENTATION OF THE CLONE TRAIT
