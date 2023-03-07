@@ -26,11 +26,31 @@ impl<T> Matrix<T> {
     /*
     Select the provided number of lines using a uniform distribution
      */
-    pub fn chose_rnd_lines_by_index(&self, nb_of_selected_line : usize) -> Matrix<T> where T : Copy {
+    pub fn chose_rnd_lines(&self, nb_of_selected_line : usize) -> Matrix<T> where T : Copy {
         let range = Uniform::new(0, self.nb_lines);
         self.chose_lines_by_index(&thread_rng().sample_iter(range).take(nb_of_selected_line).collect())
     }
 
+    /*
+    Select the lines according to the provided boolean vector, if true the line is selected, not otherwise
+     */
+    pub fn chose_lines_by_bool(&self, bools : &Vec<bool>) -> Matrix<T> where T : Copy {
+        assert_eq!(bools.len(), self.nb_lines, "The length of the provided vector must be the same as the number of line of the matrix");
+        let mut data = Vec::new();
+        let mut nb_lines = 0;
+        for i in 0..self.nb_lines {
+            if bools[i] {
+                data.extend_from_slice(&self[i]);
+                nb_lines +=1;
+            }
+        }
+        Matrix {
+            size: self.nb_columns * nb_lines,
+            nb_columns : self.nb_columns,
+            nb_lines,
+            data,
+        }
+    }
 
     /*
     Split the Matrix in the provided number of parts, if the number of parts asked is greater than the number of lines in the Matrix the program panic
