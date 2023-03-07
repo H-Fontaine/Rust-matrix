@@ -101,33 +101,3 @@ impl<T> Matrix<T> {
         }
     }
 }
-
-/*
-impl<T, I> Concatenate for I where I : IntoIterator<Item = Matrix<T>> {
-    type Item = Matrix<T>;
-
-    /*
-    Concatenate multiples Matrix by putting them under each other in the order of the iterator
-    - self : I                  It is an object that can be iterate over and that returns Matrix<T>
-     */
-    fn concatenate_lines(self) -> Self::Item {
-        let mut iterator = self.into_iter();
-        let first_matrix = iterator.next().unwrap();
-        let nb_columns = first_matrix.nb_columns;
-        let mut nb_lines = first_matrix.nb_lines;
-        let mut data : Vec<T> = first_matrix.into_iter().collect();
-
-        for matrix in iterator {
-            assert_eq!(nb_columns, matrix.nb_columns, "Error can't concatenate matrix with different number of columns");
-            nb_lines += matrix.nb_lines;
-            data.extend(matrix.into_iter());
-        }
-        Matrix {
-            nb_lines,
-            nb_columns,
-            size: nb_lines * nb_columns,
-            data,
-        }
-    }
-}
-*/
