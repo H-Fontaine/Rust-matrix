@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::ops::{Add, AddAssign, BitAnd, Div, Mul, Neg};
 use num_traits::Zero;
 use crate::Matrix;
@@ -88,23 +89,24 @@ impl<T> AddAssign<Matrix<T>> for Matrix<T> where T : AddAssign {
     }
 }
 
-
 //ADDING ALONG COLUMNS OR LINES
-impl<'a, T> Matrix<T> where T : AddAssign<&'a T> + 'a {
-    pub fn add_to_lines(&mut self, rhs : &'a Matrix<T>) {
-        assert_eq!(rhs.nb_lines, 1, "The matrix to add must have exactly one line");
-        assert_eq!(self.nb_columns, rhs.nb_columns, "Both matrix must have the same number of columns");
+impl<T> Matrix<T> where T : AddAssign + Copy {
+    pub fn add_to_lines<M>(&mut self, rhs : M) where M : Borrow<Matrix<T>> {
+        let matrix_line = rhs.borrow();
+        assert_eq!(matrix_line.nb_lines, 1, "The matrix to add must have exactly one line");
+        assert_eq!(self.nb_columns, matrix_line.nb_columns, "Both matrix must have the same number of columns");
         for i in 0..self.size {
-            self.data[i] += &rhs.data[i % self.nb_columns];
+            self.data[i] += matrix_line.data[i % self.nb_columns];
         }
     }
 
-    pub fn add_to_columns(&mut self, rhs : &'a Matrix<T>) {
-        assert_eq!(rhs.nb_columns, 1, "The matrix to add must have exactly one column");
-        assert_eq!(self.nb_lines, rhs.nb_lines, "Both matrix must have the same number of lines");
+    pub fn add_to_columns<M>(&mut self, rhs : M) where M : Borrow<Matrix<T>> {
+        let matrix_column = rhs.borrow();
+        assert_eq!(matrix_column.nb_columns, 1, "The matrix to add must have exactly one column");
+        assert_eq!(self.nb_lines, matrix_column.nb_lines, "Both matrix must have the same number of lines");
         for i in 0..self.nb_lines {
             for j in 0..self.nb_columns {
-                self.data[i * self.nb_columns + j] += &rhs.data[i];
+                self.data[i * self.nb_columns + j] += matrix_column.data[i];
             }
         }
     }
@@ -330,8 +332,3 @@ impl<T> Matrix<T> where T : AddAssign + Clone + Zero {
         }
     }
 }
-
-
-
-
-
