@@ -98,6 +98,7 @@ impl<T> AddAssign<Matrix<T>> for Matrix<T> where T : AddAssign {
 
 
 //ADDING ALONG COLUMNS OR LINES
+/*
 impl<T> Matrix<T> where T : AddAssign + Copy {
     pub fn add_to_lines<M>(mut self, rhs : M) -> Matrix<T> where M : Borrow<Matrix<T>> {
         let matrix_line = rhs.borrow();
@@ -116,6 +117,27 @@ impl<T> Matrix<T> where T : AddAssign + Copy {
         for i in 0..self.nb_lines {
             for j in 0..self.nb_columns {
                 self.data[i * self.nb_columns + j] += matrix_column.data[i];
+            }
+        }
+        self
+    }
+}*/
+impl<T> Matrix<T> where T : AddAssign + Copy {
+    pub fn add_to_lines<M>(mut self, rhs : Matrix<T>) -> Matrix<T> {
+        assert_eq!(rhs.nb_lines, 1, "The matrix to add must have exactly one line");
+        assert_eq!(self.nb_columns, rhs.nb_columns, "Both matrix must have the same number of columns");
+        for i in 0..self.size() {
+            self.data[i] += rhs.data[i % self.nb_columns];
+        }
+        self
+    }
+
+    pub fn add_to_columns<M>(mut self, rhs : Matrix<T>) -> Matrix<T> {
+        assert_eq!(rhs.nb_columns, 1, "The matrix to add must have exactly one column");
+        assert_eq!(self.nb_lines, rhs.nb_lines, "Both matrix must have the same number of lines");
+        for i in 0..self.nb_lines {
+            for j in 0..self.nb_columns {
+                self.data[i * self.nb_columns + j] += rhs.data[i];
             }
         }
         self
