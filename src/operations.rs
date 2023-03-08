@@ -123,7 +123,7 @@ impl<T> Matrix<T> where T : AddAssign + Copy {
     }
 }*/
 impl<T> Matrix<T> where T : AddAssign + Copy {
-    pub fn add_to_lines<M>(mut self, rhs : Matrix<T>) -> Matrix<T> {
+    pub fn add_to_lines(mut self, rhs : &Matrix<T>) -> Matrix<T> {
         assert_eq!(rhs.nb_lines, 1, "The matrix to add must have exactly one line");
         assert_eq!(self.nb_columns, rhs.nb_columns, "Both matrix must have the same number of columns");
         for i in 0..self.size() {
@@ -132,7 +132,7 @@ impl<T> Matrix<T> where T : AddAssign + Copy {
         self
     }
 
-    pub fn add_to_columns<M>(mut self, rhs : Matrix<T>) -> Matrix<T> {
+    pub fn add_to_columns(mut self, rhs : &Matrix<T>) -> Matrix<T> {
         assert_eq!(rhs.nb_columns, 1, "The matrix to add must have exactly one column");
         assert_eq!(self.nb_lines, rhs.nb_lines, "Both matrix must have the same number of lines");
         for i in 0..self.nb_lines {
