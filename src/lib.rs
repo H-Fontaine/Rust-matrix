@@ -1,146 +1,123 @@
-use std::fmt::Display;
-use std::ops::{Index, IndexMut};
-use num_traits::{one, zero, Zero, One};
-use rand::{Rng, distributions::Distribution};
+use std::mem::MaybeUninit;
+use std::ops::{Add, AddAssign, Index, IndexMut, Mul, MulAssign};
+use std::process::Output;
+use num_traits::{Zero, zero};
+use std::vec::Vec;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Matrix<T, const N : usize, const M : usize> {
+    data : Vec<T>
+}
 
-mod operations;
-mod iterators;
-mod functionalities;
-mod traitsimpl;
-mod test;
+impl<T, const N : usize, const M : usize> Matrix<T, N, M> {
+    fn uninitialized() -> Matrix<MaybeUninit<T>, N, M> {
+        Matrix {
+            data : Vec::with_capacity(N * M)
+        }
+    }
+}
 
-#[derive(Debug)]
-pub struct Matrix<T> {
-    nb_lines : usize,
-    nb_columns : usize,
-    data : Vec<T>,
+impl<T, const N : usize, const M : usize> Matrix<MaybeUninit<T>, N, M> {
+    unsafe fn init(self) -> Matrix<T, N, M> {
+        Matrix {
+            data : self.into_iter().map(|a| unsafe{ a.assume_init() }).collect()
+        }
+    }
 }
 
 
-//METHODS TO CREATE NEW MATRIX
-impl<T> Matrix<T> {
-    pub fn new() -> Matrix<T> {
+impl<T, const N : usize, const M : usize> Add<Matrix<T, N, M>> for Matrix<T, N, M> where T : Add<Output = T>{
+    type Output = Matrix<T, N, M>;
+
+    fn add(self, rhs: Matrix<T, N, M>) -> Self::Output {
         Matrix {
-            nb_lines : 0,
-            nb_columns : 0,
-            data : Vec::new(),
+            data : self.into_iter().zip(rhs.into_iter()).map(|(a, b)| a + b).collect(),
         }
     }
+}
 
-    pub fn zeros(nb_lines : usize, nb_columns : usize) -> Matrix<T> where T : Zero + Copy { //create a matrix filled with the value zero
-        Matrix {
-            nb_lines,
-            nb_columns,
-            data : vec![zero(); nb_lines * nb_columns],
-        }
-    }
+impl<'a, T, const N : usize, const M : usize, const P : usize> Mul<Matrix<T, M, P>> for Matrix<T, N, M> where T : Mul<Output = T> + Copy + AddAssign<T> {
+    type Output = Matrix<T, N, P>;
 
-    pub fn ones(nb_lines : usize, nb_columns : usize) -> Matrix<T> where T : One + Copy { //create a matrix filled with the value one
-        Matrix {
-            nb_lines,
-            nb_columns,
-            data : vec![one(); nb_lines * nb_columns],
-        }
-    }
-
-    pub fn identity(n : usize) -> Matrix<T> where T : One + Zero + Copy {
-        let mut identity = Matrix::zeros(n, n);
-        for i in 0..n {
-            identity[i][i] = T::one();
-        }
-        identity
-    }
-
-    pub fn new_rand<R : ?Sized + Rng, D : Distribution<T>>(nb_lines: usize, nb_columns: usize, rng: &mut R, distribution: D) -> Matrix<T> { //create a matrix filled with random values
-        let data: Vec<T> = rng.sample_iter(distribution).take(nb_lines * nb_columns).collect();
-        Matrix {
-            nb_lines,
-            nb_columns,
-            data,
-        }
-    }
-
-    pub fn t(&self) -> Matrix<T> where T : Copy { //return the transposed matrix
-        let mut data = Vec::<T>::with_capacity(self.size());
-        for j in 0..self.nb_columns {
-            for i in 0..self.nb_lines {
-                data.push(self[i][j])
+    fn mul(self, rhs: Matrix<T, M, P>) -> Self::Output {
+        let mut res = Matrix::uninitialized();
+        for i in 0..N {
+            for j in 0..P {
+                res[(i,j)].write(self[(i,0)] * rhs[(0,j)]);
+                for k in 1..M {
+                    unsafe {*res[(i,j)].assume_init_mut() += self[(i,k)] * rhs[(k,j)]}
+                }
             }
         }
+        unsafe {res.init()}
+    }
+}
+
+impl<T, const N : usize, const M : usize> Zero for Matrix<T, N, M> where T : Add<Output = T> + Zero + Clone {
+    fn zero() -> Self {
         Matrix {
-            nb_lines : self.nb_columns,
-            nb_columns : self.nb_lines,
-            data,
+            data : vec![T::zero(); N * M]
         }
     }
-}
 
-
-//GETTERS
-impl<T> Matrix<T> {
-    pub fn lines(&self) -> usize {
-        self.nb_lines
+    fn set_zero(&mut self) {
+        self.data = vec![T::zero(); N * M]
     }
 
-    pub fn columns(&self) -> usize {
-        self.nb_columns
-    }
-
-    pub fn size(&self) -> usize {
-        self.nb_lines * self.nb_columns
-    }
-
-    pub fn shape(&self) -> (usize, usize) {
-        (self.nb_lines, self.nb_columns)
-    }
-}
-
-//IMPLEMENTATION OF THE CLONE TRAIT
-impl<T> Clone for Matrix<T> where T : Clone {
-    fn clone(&self) -> Self {
-        Matrix {
-            nb_lines : self.nb_lines,
-            nb_columns : self.nb_columns,
-            data : self.data.clone(),
-        }
-    }
-}
-
-//OVERLOADING [.] operator
-impl<T> Index<usize> for Matrix<T> {
-    type Output = [T];
-    fn index(&self, index: usize) -> &Self::Output {
-        let begin = index * self.nb_columns;
-        let end = begin + self.nb_columns;
-        &self.data[begin..end]
-    }
-}
-impl<T> IndexMut<usize> for Matrix<T> {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        let begin = index * self.nb_columns;
-        let end = begin + self.nb_columns;
-        &mut self.data[begin..end]
-    }
-}
-
-
-//DISPLAY METHODS
-impl<T> Matrix<T> where T : Display {
-    pub fn display(&self) {
-        for i in 0..self.nb_lines {
-            for j in 0..self.nb_columns {
-                print!("{} ", self[i][j])
+    fn is_zero(&self) -> bool {
+        for item in self.into_iter() {
+            if !item.is_zero() {
+                return false
             }
-            println!();
         }
+        true
+    }
+}
+
+impl<T, const N : usize, const M : usize> IntoIterator for Matrix<T, N, M> {
+    type Item = T;
+    type IntoIter = std::vec::IntoIter<T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.into_iter()
     }
 }
 
 
+impl<'a, T, const N : usize, const M : usize> IntoIterator for &'a Matrix<T, N, M> {
+    type Item = &'a T;
+    type IntoIter = std::slice::Iter<'a, T>;
 
+    fn into_iter(self) -> Self::IntoIter {
+        (&self.data).into_iter()
+    }
+}
 
+impl<'a, T, const N : usize, const M : usize> IntoIterator for &'a mut Matrix<T, N, M> {
+    type Item = &'a mut T;
+    type IntoIter = std::slice::IterMut<'a, T>;
 
+    fn into_iter(self) -> Self::IntoIter {
+        (&mut self.data).into_iter()
+    }
+}
+
+impl<T, const N : usize, const M : usize> Index<(usize, usize)> for Matrix<T, N, M> {
+    type Output = T;
+
+    fn index(&self, index: (usize, usize)) -> &Self::Output {
+        assert!(index.1 < M, "Index {}, {} is out of bound of a {}, {} matrix", index.0, index.1, N, M);
+        &self.data[index.0 * N + index.1]
+    }
+}
+
+impl<T, const N : usize, const M : usize> IndexMut<(usize, usize)> for Matrix<T, N, M> {
+
+    fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
+        assert!(index.1 < M, "Index {}, {} is out of bound of a {}, {} matrix", index.0, index.1, N, M);
+        &mut self.data[index.0 * N + index.1]
+    }
+}
 
 
 
